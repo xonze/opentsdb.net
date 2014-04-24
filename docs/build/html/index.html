@@ -60,7 +60,7 @@
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 </ul>
 
-  <h4>Next topic</h4>
+  <h4>下一章节</h4>
   <p class="topless"><a href="new.html"
                         title="next chapter">What's New</a></p>
 <div id="searchbox" style="display: none">
@@ -85,65 +85,69 @@
           <div class="body">
             
   <div class="section" id="documentation-for-opentsdb-version">
-<h1>Documentation for OpenTSDB 2.0</h1>
-<p>Welcome to OpenTSDB 2.0, the scalable, distributed time series database. We recommend that you start with the <a class="reference internal" href="user_guide/index.html"><em>User Guide</em></a> then test your understanding with an <a class="reference internal" href="installation.html"><em>Installation</em></a> and read on the <a class="reference internal" href="api_http/index.html"><em>HTTP API</em></a> if you need to develope against it.</p>
+<h1>OpenTSDB 2.0 文档</h1>
+<p>OpenTSDB 2.0 是一个可扩展、分布式的时间序列数据库。 假如你需要二次开发，我们推荐你从<a class="reference internal" href="user_guide/index.html"><em>用户指南</em></a>的<a class="reference internal" href="installation.html"><em>安装</em></a> 测试开始阅读，逐渐了解 <a class="reference internal" href="api_http/index.html"><em>HTTP API</em></a> </p>
 </div>
 <div class="section" id="contents">
-<h1>Contents</h1>
+<h1>目录</h1>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="new.html">What's New</a></li>
-<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="installation.html#runtime-requirements">Runtime Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation.html#id1">Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation.html#upgrading-from-1-x">Upgrading from 1.x</a></li>
-<li class="toctree-l2"><a class="reference internal" href="installation.html#downgrading">Downgrading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">安装</a>
+  <ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#runtime-requirements">运行环境</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#id1">安装</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#upgrading-from-1-x">从1.x 升级</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#downgrading">降级</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="user_guide/index.html">User Guide</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="user_guide/configuration.html">Configuration</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user_guide/writing.html">Writing Data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user_guide/query/index.html">Querying or Reading Data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user_guide/uids.html">UIDs and TSUIDs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user_guide/metadata.html">Metadata</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user_guide/trees.html">Trees</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user_guide/guis/index.html">GUI</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user_guide/plugins.html">Plugins</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user_guide/stats.html">Stats</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user_guide/definitions.html">Definitions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user_guide/backends/index.html">Storage</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user_guide/cli/index.html">CLI Tools</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user_guide/utilities/index.html">Utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="user_guide/logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide/index.html">用户指南</a>
+  <ul>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/configuration.html">配置</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/writing.html">数据写入</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/query/index.html">查询或读取数据</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/uids.html">UID 和 TSUID</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/metadata.html">元数据</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/trees.html">树</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/guis/index.html">图形用户界面</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/plugins.html">插件</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/stats.html">统计</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/definitions.html">名词解释</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/backends/index.html">存储</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/cli/index.html">命令行工具</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/utilities/index.html">实用工具</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/logging.html">日志</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api_http/index.html">HTTP API</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api_http/index.html#overview">Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#version-1-x-to-2-x">Version 1.X to 2.x</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#serializers">Serializers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#authentication-permissions">Authentication/Permissions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#response-codes">Response Codes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#errors">Errors</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#verbs">Verbs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#api-versioning">API Versioning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#query-string-vs-body-content">Query String Vs. Body Content</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#cors">CORS</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#documentation">Documentation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#deprecated-api">Deprecated API</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#api-endpoints">API Endpoints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#version-1-x-to-2-x">从 1.X 到 2.x版</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#serializers">序列化</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#authentication-permissions">认证/授权</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#response-codes">响应代码</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#errors">错误</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#verbs">请求动作（GET、POST、PUT、DELETE）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#api-versioning">API 版本</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#query-string-vs-body-content">查询字符串 Vs. 内容体</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#cors">跨域资源共享（CORS）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#documentation">文档</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#deprecated-api">未来会废弃的 API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api_http/index.html#api-endpoints">API</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="development/index.html">Development</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="development/index.html#guidelines">Guidelines</a></li>
-<li class="toctree-l2"><a class="reference internal" href="development/index.html#details">Details</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development/index.html">开发</a>
+  <ul>
+<li class="toctree-l2"><a class="reference internal" href="development/index.html#guidelines">原则方针</a></li>
+<li class="toctree-l2"><a class="reference internal" href="development/index.html#details">详情</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="resources.html">Additional Resources</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="resources.html#front-ends">Front Ends</a></li>
-<li class="toctree-l2"><a class="reference internal" href="resources.html#utilities">Utilities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="resources.html#clients">Clients</a></li>
-<li class="toctree-l2"><a class="reference internal" href="resources.html#references-to-opentsdb">References to OpenTSDB</a></li>
-<li class="toctree-l2"><a class="reference internal" href="resources.html#statistical-analysis-tools">Statistical Analysis Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resources.html">其它资源</a>
+  <ul>
+<li class="toctree-l2"><a class="reference internal" href="resources.html#front-ends">前端</a></li>
+<li class="toctree-l2"><a class="reference internal" href="resources.html#utilities">实用工具</a></li>
+<li class="toctree-l2"><a class="reference internal" href="resources.html#clients">客户端（Clients）</a></li>
+<li class="toctree-l2"><a class="reference internal" href="resources.html#references-to-opentsdb">OpenTSDB 引用</a></li>
+<li class="toctree-l2"><a class="reference internal" href="resources.html#statistical-analysis-tools">统计分析工具</a></li>
 </ul>
 </li>
 </ul>
@@ -152,8 +156,8 @@
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables</h1>
 <ul class="simple">
-<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
-<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
+<li><a class="reference internal" href="genindex.html"><em>索引</em></a></li>
+<li><a class="reference internal" href="search.html"><em>搜索</em></a></li>
 </ul>
 </div>
 
