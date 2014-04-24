@@ -1,9 +1,9 @@
-Installation
+安装
 ============
 
 OpenTSDB may be compiled from source or installed from a package. Releases can be found on `Github <https://github.com/OpenTSDB/opentsdb/releases>`_.
 
-Runtime Requirements
+运行环境
 ^^^^^^^^^^^^^^^^^^^^
 
 To actually run OpenTSDB, you'll need to meet the following:
@@ -13,7 +13,7 @@ To actually run OpenTSDB, you'll need to meet the following:
 * HBase 0.92 or later
 * GnuPlot 4.2 or later
 
-Installation
+安装
 ^^^^^^^^^^^^
 
 First, you need to setup HBase. If you are brand new to HBase and/or OpenTSDB we recommend you test with a stand-alone instance as this is the easiest to get up and running. The best place to start is to follow the `Apache Quick Start <https://hbase.apache.org/book/quickstart.html>`_ guide. Alternatively you could try a packaged distribution such as `Cloudera's CDH <http://www.cloudera.com/content/cloudera/en/products-and-services/cloudera-express.html>`_ or `Hortonworks HDP <http://hortonworks.com/products/hdp-2/>`_
@@ -43,7 +43,7 @@ If you can't connect to Zookeeper, check IPs and name resolution. HBase can be f
 
 If HBase is running, you can choose to install OpenTSDB from a package (Debian is the only one available at this time) or from source using GIT or a source tarball.
 
-Compiling From Source
+从源码编译
 ---------------------
 
 Complication requirements include:
@@ -68,7 +68,7 @@ If compilation was successfuly, you should have a tsdb jar file in ``./build`` a
 
 If you need to distribute OpenTSDB to machines without an Internet connection, call ``./build.sh dist`` to wrap the build directory into a tarball that you can then copy to additional machines.
 
-Source Layout
+源码布局
 -------------
 
 There are two main branches in the GIT repo. The ``master`` branch is the latest stable release along with any bug fixes that have been committed between releases. Currently, the ``master`` branch is OpenTSDB 1.0. The ``next`` branch is the next major or minor version of OpenTSDB with new features and development. When ``next`` is stable, it will be merged into ``master``. Currently the ``next`` branch is 2.0.0. Additional branches may be present and are used for testing or developing specific features.
@@ -134,7 +134,7 @@ At this point you can access the TSD's web interface through http://127.0.0.1:42
 
   The **Cache Directory** stores temporary files generated when a graph is requested via the built-in GUI. These files should be purged periodically to free up space. OpenTSDB doesn't clean up after itself at this time but there is a script that should be run as a cron at least once a day located at ``tools/clean_cache.sh``.
 
-Upgrading from 1.x
+从 1.x 升级
 ^^^^^^^^^^^^^^^^^^
 
 OpenTSDB |version| is fully backwards compatible with 1.x data. We've taken great pains to make sure you can download |version|, compile, stop your old TSD and start the new one. Your existing tools will read and write to the TSD without a problem. |version| introduces two new tables to HBase schema for storing meta-data. From the directory where you downloaded the source (or the tools directory if installed with the Debian package), execute::
@@ -153,7 +153,7 @@ If you do perform a rolling upgrade where you have multiple TSDs, heed the follo
 
 Before upgrading to 2.x, you may want to upgrade all of your TSDs to OpenTSDB 1.2. This release is fully forwards compatible in that it will ignore annotations and millisecond timestamps and operate as expected. With 1.2 running, if you accidentally record an annotation or millisecond data point, your 1.2 TSDs will operate normally.
 
-Downgrading
+降级使用
 ^^^^^^^^^^^
 
 Because we've worked hard to maintain backwards compatability, you can turn off a 2.x TSD and restart your old 1.x TSD. The only exceptions are if you have written annotations or milliseconds as you saw in the warning above. In these cases you must downgrade to 1.2 or later. You may also delete the ``tsdb-tree`` and ``tsdb-meta`` tables if you so desire.

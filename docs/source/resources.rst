@@ -1,18 +1,18 @@
-Additional Resources
+其它资源
 ====================
 
-These are just some of the awesome front-ends, utilities, libraries and resources created by the OpenTSDB community. Please let us know if you have a project you'd like to see listed and if you don't see something you need, search for it on Github (new projects are popping up all the time) or your favorite search engine.
+这些只是一些非常棒的前端、实用工具、由OpenTSDB社区创建的库和资源。如果你有一个项目想列在这里，请你告诉我们，如果你没有看到你所需要的，你可以到Github或搜索引擎上搜索。
 
-Front Ends
+前端
 ^^^^^^^^^^
 
-* `Shadow Wolf <https://github.com/box/StatusWolf>`_ - A PHP and MySQL based dashboard for creating and storing dynamic custom graphs with OpenTSDB data including anonmaly detection.
-* `Metrilyx <https://github.com/Ticketmaster/metrilyx-2.0>`_ - A Python and Django based dashboard system with dynamic graphs from Ticketmaster.
+* `Shadow Wolf <https://github.com/box/StatusWolf>`_ - 一个基于PHP+MySQL的仪表盘，使用OpenTSDB数据动态创建和存储自定义图形包括异常检查
+* `Metrilyx <https://github.com/Ticketmaster/metrilyx-2.0>`_ - Python+Django dashboard system with dynamic graphs from Ticketmaster.
 * `Opentsdb-Dashboard <https://github.com/clover/opentsdb-dashboard>`_ - An HBase based dashboard system for OpenTSDB 1.x from Clover.
 * `TSDash <https://github.com/facebook/tsdash>`_ - A Java based UI and dashboard from Facebook.
 * `OpenTSDB Dashboard <https://github.com/turn/opentsdb-dashboard>`_ - A JQuery based dashboard from Turn.
 
-Utilities
+实用工具
 ^^^^^^^^^
 
 * `opentsdbjsonproxy <https://github.com/noca/opentsdbjsonproxy>`_ - An HTTP proxy to convert 1.x ASCII output from the ``/q`` endpoint to JSON for use with High Charts or other libraries.
@@ -28,7 +28,7 @@ Utilities
 * `Coda Hale Metrics Reporter <https://github.com/sps/metrics-opentsdb>`_ - Writes data to OpenTSDB from the Java Metrics library.
 * `Alternative Coda Hale Metrics Reporter <https://github.com/stuart-warren/metrics-opentsdb>`_ - Writes data to OpenTSDB from the Java Metrics library.
 
-Clients
+客户端（client）
 ^^^^^^^
 
 * `R Client <https://github.com/holstius/opentsdbr>`_ - A client to pull data from OpenTSDB into R.
@@ -37,7 +37,7 @@ Clients
 * `Ruby <https://github.com/johnewart/ruby-opentsdb>`_ A write-only client for pushing data to a TSD.
 * `Go <https://github.com/bzub/go-opentsdb>`_ - Work with OpenTSDB data in Go.
 
-References to OpenTSDB
+引用 OpenTSDB 的地方
 ^^^^^^^^^^^^^^^^^^^^^^
 
 * `HBase in Action <http://www.manning.com/dimidukkhurana/>`_ (Manning Publications) - Chapter 7: HBase by Example: OpenTSDB
@@ -47,7 +47,7 @@ References to OpenTSDB
 * `HBaseCon 2013 <http://www.hbasecon.com/sessions/opentsdb-at-scale/>`_ - Presentation from Jonathan Creasy and Geoffrey Anderson
 * `Strata 2011 <http://strataconf.com/strata2011/public/schedule/detail/16996>`_ - Presentation by Benoit Sigoure
 
-Statistical Analysis Tools
+统计分析工具
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * `GnuPlot <http://www.gnuplot.info/>`_ - Graphing library used by OpenTSDB

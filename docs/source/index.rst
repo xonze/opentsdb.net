@@ -3,12 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Documentation for OpenTSDB |version|
+OpenTSDB |version| 文档
 ====================================
 
-Welcome to OpenTSDB |version|, the scalable, distributed time series database. We recommend that you start with the :doc:`user_guide/index` then test your understanding with an :doc:`installation` and read on the :doc:`api_http/index` if you need to develope against it.
+OpenTSDB |version| 是一个可扩展、分布式的时间序列数据库。 假如你需要二次开发，我们推荐你从 :doc:`user_guide/index` 的 :doc:`installation`  测试开始阅读，逐渐了解 :doc:`api_http/index`。
 
-Contents
+目录
 ========
 
 .. toctree::

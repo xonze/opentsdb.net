@@ -1,24 +1,24 @@
-What's New
+新功能特性
 ==========
 
-OpenTSDB has a thriving community who contributed and requested a number of new features. 2.0 has the following new features:
+OpenTSDB 在社区积极的推动下，贡献并申请了一些新的功能特性。2.0具有以下新特性：
 
-* Lock-less UID Assignment - Drastically improves write speed when storing new metrics, tag names, or values
-* Restful API - Provides access to all of OpenTSDB's features as well as offering new options, defaulting to JSON
-* Cross Origin Resource Sharing - For the API so you can make AJAX calls easily
-* Store Data Via HTTP - Write data points over HTTP as an alternative to Telnet
-* Configuration File - A key/value file shared by the TSD and command line tools
-* Plugable Serializers - Enable different inputs and outputs for the API
-* Annotations - Record meta data about specific time series or data points
-* Meta Data - Record meta data for each time series, metrics, tag names, or values
-* Trees - Flatten metric and tag combinations into a single name for navigation or usage with different tools
-* Search Plugins - Send meta data to search engines to delve into your data and figure out what's in your database
-* Real-Time Publishing Plugin - Send data to external systems as they arrive to your TSD
-* Ingest Plugins - Accept data points in different formats
-* Millisecond Resolution - Optionally store data with millisecond precision
-* Variable Length Encoding - Use less storage space for smaller integer values
-* Non-Interpolating Aggregation Functions - For situations where you require raw data
-* Rate Counter Calculations - Handle roll-over and anomaly supression
-* Additional Statistics - Including the number of UIDs assigned and available
+* UID分配需要更少的锁 - 当存储新的metrics, tag names, 或 values是可以大幅提升写入速度
+* Restful API - 提供连接OpenTSDB的所需的所有特性以及提供的新选项，默认是JSON格式
+* 跨域资源共享（CORS） - jax调用API更容易
+* 通过HTTP方式存储数据 - 通过HTTP方式写入数据，以替代Telnet
+* 配置文件 - TSD和命令行工具共用的一个 key/value 文件
+* 可插拔的序列化工具 -  允许API使用不同的输入和输出
+* 注解 - 记录特定的时间序列或数据点的元信息
+* 元数据 - 可以为每隔时间序列、metrics, tag names, 或 values 记录元数据
+* 树 - 为导航或使用不同的工具使 metric 和 tag 组合成一个名称
+* 搜索插件 - 发送元数据到搜索引擎用于挖掘你的数据，并找出什么在你的数据库
+* 实时发布插件 - 将到达你的TSD的数据发送到扩展系统
+* 获取插件 - 接受不同格式的数据点
+* 毫秒级分辨率 - 可选地以精确到毫秒级存储数据
+* 可变长度的编码 - 为较小的整数值使用更少的存储空间
+* 非插值聚合功能 - 对于需要使用原始数据的情况
+* 数率计数器计算 - 控制 roll-over 和异常抑制
+* 其它统计 - 包括UID分配和可用
 
-Thank you to everyone who has contributed to |version|. Help us out by sharing your ideas and code at `GitHub <https://github.com/OpenTSDB>`_
+感谢对 |version| 做出贡献的每一位. 帮助我们分享你的想法和代码 `GitHub <https://github.com/OpenTSDB>`_
