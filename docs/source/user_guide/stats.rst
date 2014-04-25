@@ -1,4 +1,4 @@
-Stats
+统计
 =====
 
 OpenTSDB offers a number of metrics about it's performance. These can easily be published right back into OpenTSDB at any interval you like. Stats are accesible from the GUI via the "Stats" tab, from the Http API at ``/api/stats`` or the legacy API at ``/stats``.

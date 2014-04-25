@@ -1,4 +1,4 @@
-Quick Start
+快速入门
 ===========
 
 Once you have a TSD up and running (after following the :doc:`../installation` guide) you can follow the steps below to get some data into OpenTSDB. After you have some data stored, pull up the GUI and try generating some graphs.

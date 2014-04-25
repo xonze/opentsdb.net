@@ -1,4 +1,4 @@
-Definitions
+名词解释
 ===========
 
 When it comes to timeseries data, there are lots of terms tossed about that can lead to some confusion. This page is a sort of glossary that helps to define words related to the use of OpenTSDB.
