@@ -1,7 +1,7 @@
-HBase Schema
-============
+HBase 模式（Schema）
+======================
 
-Data Table Schema
+数据表的模式
 ^^^^^^^^^^^^^^^^^
 
 All OpenTSDB data points are stored in a single, massive table, named ``tsdb`` by default. This is to take advantage of HBases ordering and region distribution. All values are stored in the ``t`` column family.
@@ -45,7 +45,7 @@ This represents a single metric but four time series across three hours. Note ho
   
 Tag names (tagk) are sorted alphabetically before storage, so the "host" tag will always appear first in the row key/TSUID ahead of "owner".
 
-Data Point Columns
+数据点列
 ------------------
 
 By far the most common column are data points. These are the actual values recorded when data is sent to the TSD for storage. 
@@ -62,7 +62,7 @@ For example, ``0100`` means the column value is an 8 byte, signed integer. ``101
 
 **Column Values** - 1 to 8 bytes encoded as indicated by the qualifier flag.
 
-Compactions
+压缩
 -----------
 
 If compactions have been enabled for a TSD, a row may be compacted after it's base hour has passed or a query has run over the row. Compacted columns simply squash all of the data points together to reduce the amount of overhead consumed by disparate data points. Data is initially written to individual columns for speed, then compacted later for storage efficiency. Once a row is compacted, the individual data points are deleted. Data may be written back to the row and compacted again later.
@@ -73,7 +73,7 @@ If compactions have been enabled for a TSD, a row may be compacted after it's ba
 
 **Column Values** - The value is also a concatenation of all of the individual data points. The qualifier is split first and the flags for each data point determine if the parser consumes 4 or 8 bytes 
 
-Annotations or Other Objects
+注释或其它对象
 ----------------------------
 
 A row may store notes about the timeseries inline with the datapoints. Objects differ from data points by having an odd number of bytes in the qualifier.
@@ -82,7 +82,7 @@ A row may store notes about the timeseries inline with the datapoints. Objects d
 
 **Column Values** - Annotation values are UTF-8 encoded JSON objects. Do not modify this value directly. The order of the fields is important, affecting CAS calls. 
 
-UID Table Schema
+UID表模式
 ^^^^^^^^^^^^^^^^
 
 A separate, smaller table called ``tsdb-uid`` stores UID mappings, both forward and reverse. Two columns exist, one named ``name`` that maps a UID to a string and another ``id`` mapping strings to UIDs. Each row in the column family will have at least one of three columns with mapping values. The standard column qualifiers are:
@@ -93,7 +93,7 @@ A separate, smaller table called ``tsdb-uid`` stores UID mappings, both forward 
 
 The ``name`` family may also contain additional meta-data columns if configured.
 
-``id`` Column Family
+``id`` 列簇
 --------------------
 
 **Row Key** - This will be the string assigned to the UID. E.g. for a metric we may have a value of ``sys.cpu.user`` or for a tag value it may be ``42``. 
@@ -102,7 +102,7 @@ The ``name`` family may also contain additional meta-data columns if configured.
 
 **Column Value** - An unsigned integer encoded on 3 bytes by default reflecting the UID assigned to the string for the column type. If the UID length has been changed in the source code, the width may vary.
 
-``name`` Column Family
+``name`` 列簇
 ----------------------
 
 **Row Key** - The unsigned integer UID encoded on 3 bytes by default. If the UID length has been changed in the source code, the width may be different.
@@ -111,12 +111,12 @@ The ``name`` family may also contain additional meta-data columns if configured.
 
 **Column Value** - For the standard qualifiers above, the string assigned to the UID. For a ``*_meta`` column, the value will be a UTF-8 encoded, JSON formatted UIDMeta Object as a string. Do not modify the column value outside of OpenTSDB. The order of the fields is important, affecting CAS calls.
 
-UID Assignment Row
+UID 分配行
 ------------------
 
 Within the ``id`` column family is a row with a single byte key of ``\x00``. This is the UID row that is incremented for the proper column type (metrics, tagk or tagv) when a new UID is assigned. The column values are 8 byte signed integers and reflect the maximum UID assigned for each type. On assignment, OpenTSDB calls HBase's atomic increment command on the proper column to fetch a new UID.
 
-Meta Table Schema
+Meta 表模式
 ^^^^^^^^^^^^^^^^^
 
 This table is an index of the different time series stored in OpenTSDB and can contain meta-data for each series as well as the number of data points stored for each series. Note that data will only be written to this table if OpenTSDB has been configured to track meta-data or the user creates a TSMeta object via the API. Only one column family is used, the ``name`` family and currently there are two types of columns, the meta column and the counter column.
@@ -136,7 +136,7 @@ Counter Column
 
 These columns are atomic incrementers that count the number of data points stored for a time series. The qualifier is ``ts_counter`` and the value is an 8 byte signed integer.
 
-Tree Table Schema
+Tree 表模式
 ^^^^^^^^^^^^^^^^^
 
 This table behaves as an index, organizing time series into a heirarchichal structure similar to a file system for use with tools such as Graphite or other dashboards. A tree is defined by a set of rules that process a TSMeta object to determine where in the heirarchy, if at all, a time series should appear. 
@@ -168,22 +168,22 @@ Rule Column
 
 In the tree row there are 0 or more rule columns that define a specific processing task on a time series. These columns are also UTF-8 encoded JSON objects and are modified with CAS calls. The qualifier id of the format ``rule:<level>:<order>`` where ``<level>`` is the main processing order of a rule in the set (starting at 0) and ``order`` is the processing order of a rule (starting at 0) within a given level. For example ``rule:1:0`` defines a rule at level 1 and order 0.
 
-Tree Collision Column
+Tree 碰撞 Column
 ---------------------
 
 If collision storage is enabled for a tree, a column is recorded for each time series that would have created a leaf that was already created for a previous time series. These columns are used to debug rule sets and only appear rin the collision row for a tree. The qualifier is of the format ``tree_collision:<tsuid>`` where the TSUID is a byte array representing the time series identifier. This allows for a simple ``getRequest`` call to determine if a particular time series did not appear in a tree due to a collision. The value of a colission column is the byte array of the TSUID that was recorded as a leaf.
 
-Not Matched Column
+不匹配 Column
 ------------------
 
 Similar to collisions, when enabled for a tree, a column can be recorded for each time series that failed to match any rules in the rule set and therefore, did not appear in the tree. These columns only appear in the not matched row for a tree. The qualifier is of the format ``tree_not_matched:<TSUID>`` where the TSUID is a byte array representing the time series identifier. The value of a not matched column is the byte array of the TSUID that failed to match a rule.
 
-Branch Column
+分支 Column
 -------------
 
 Branch columns have the qualifier ``branch`` and contain a UTF-8 JSON encoded object describing the current branch and any child branches that may exist. A branch column may appear in any row except the collision or not matched columns. Branches in the tree definition row are the ``root`` branch and link to the first level of child branches. These links are used to traverse the heirarchy.
 
-Leaf Column
+叶子 Column
 -----------
 
 Leaves are mappings to specific time series and represent the end of a hierarchy. Leaf columns have a qualifier format of ``leaf:<TSUID>`` where the TUID is a byte array representing the time series identifier. The value of a leaf is a UTF-8 encoded JSON object describing the leaf. Leaves may appear in any row other than the collision or not matched rows.
