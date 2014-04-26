@@ -1,25 +1,25 @@
 数据写入
 ============
 
-You may want to jump right in and start throwing data into your TSD, but to really take advantage of OpenTSDB's power and flexibility, you may want to pause and think about your naming schema. After you've done that, you can procede to pushing data over the Telnet or HTTP APIs, or use an existing tool with OpenTSDB support such as 'tcollector'.
+在你通过Telnet 或 HTTP API push数据之前，或者使用 OpenTSDB 所支持的工具如 'tcollector'，这个时候您可能想立即投入并把数据丢到你的TSD中，但是要真正利用OpenTSDB强大的功能和灵活的优势，这恐怕要暂停下来先想下您的命名模式。
 
-Naming Schema
+命名模式
 ^^^^^^^^^^^^^
 
-Many metrics administrators are used to supplying a single name for their time series. For example, systems administrators used to RRD-style systems may name their time series ``webserver01.sys.cpu.0.user``. The name tells us that the time series is recording the amount of time in user space for cpu ``0`` on ``webserver01``. This works great if you want to retrieve just the user time for that cpu core on that particular web server later on. 
+一般metrics 管理员会为他们的时间序列提供一个简单的名称。例如系统管理员用 RRD-style 系统命名他们的时间序列 ``webserver01.sys.cpu.0.user``。这个名称告诉我们这个时间序列记录的是在 ``webserver01`` 上的 cpu ``0`` 的用户空间数量。假如你想获取特别是 web server 有些时候cpu核心的user time，这个非常适合。
 
-But what if the web server has 64 cores and you want to get the average time across all of them? Some systems allow you to specify a wild card such as ``webserver01.sys.cpu.*.user`` that would read all 64 files and aggregate the results. Alternatively, you could record a new time series called ``webserver01.sys.cpu.user.all`` that represents the same aggregate but you must now write '64 + 1' different time series. What if you had a thousand web servers and you wanted the average cpu time for all of your servers? You could craft a wild card query like ``*.sys.cpu.*.user`` and the system would open all 64,000 files, aggregate the results and return the data. Or you setup a process to pre-aggregate the data and write it to ``webservers.sys.cpu.user.all``.
+但是，如果web server有64核你又想获取他们所有的平均时间。有些系统允许你指定一个通配符，如 ``webserver01.sys.cpu.*.user`` 这样就可以读出所有64个并且聚合的结果。或则你可以记录一个叫 ``webserver01.sys.cpu.user.all`` 新的时间序列来表示相同的聚合，但你必须写一个跟'64 + 1' 不同的时间序列。如果你有一千台web server你想要他们所有一起的cup平均时间，你可以制定类似 ``*.sys.cpu.*.user`` 的查询需要打开64,000个文件，然后聚合结果返回数据。或者你可以设置一个预先做好聚合处理的数据存储到 ``webservers.sys.cpu.user.all``。
 
-OpenTSDB handles things a bit differently by introducing the idea of 'tags'. Each time series still has a 'metric' name, but it's much more generic, something that can be shared by many unique time series. Instead, the uniqueness comes from a combination of tag key/value pairs that allows for flexible queries with very fast aggregations.
+OpenTSDB 通过引入标签 'tags' 思想来处理不同的事情。每一个时间序列都可以有一个 'metric' 名称，但他们更通用的是通过一些唯一时间序列共享一些东西。相反，它的唯一性是通过 key/value 标签（tag）实现，并允许灵活快速地聚合查询。
 
-.. NOTE:: Every time series in OpenTSDB must have at least one tag.
+.. NOTE:: 在OpenTSDB 中的每一个时间序列必须至少有一个tag.
 
-Take the previous example where the metric was ``webserver01.sys.cpu.0.user``. In OpenTSDB, this may become ``sys.cpu.user host=webserver01, cpu=0``. Now if we want the data for an individual core, we can craft a query like ``sum:sys.cpu.user{host=webserver01,cpu=42}``. If we want all of the cores, we simply drop the cpu tag and ask for ``sum:sys.cpu.user{host=webserver01}``. This will give us the aggregated results for all 64 cores. If we want the results for all 1,000 servers, we simply request ``sum:sys.cpu.user``. The underlying data schema will store all of the ``sys.cpu.user`` time series next to each other so that aggregating the individual values is very fast and efficient. OpenTSDB was designed to make these aggregate queries as fast as possible since most users start out at a high level, then drill down for detailed information.
+拿上面的 ``webserver01.sys.cpu.0.user`` metric为例，在 OpenTSDB 中这可能会成为 ``sys.cpu.user host=webserver01, cpu=0``。现在假如我们需要单个核的数据，我们可以制作一个类似 ``sum:sys.cpu.user{host=webserver01,cpu=42}`` 的查询。假如我们想要所有核的，我们简单的使用 ``sum:sys.cpu.user{host=webserver01}``。这将为我们聚合64个核的结果给我们。假如我们需要1000个服务器的结果，我们简单的请求 ``sum:sys.cpu.user``。底层数据模式存储``sys.cpu.user`` 所有时间序列是彼此相邻的，使得聚合各个值非常快速高效。因为大多数用户一开始就在一个较高的水平，OpenTSDB 的目的就是使这些聚合查询尽可能快。然后再钻研详细信息。
 
-Aggregations
+集合
 ------------
 
-While the tagging system is flexible, some problems can arise if you don't understand how the querying side of OpenTSDB, hence the need for some forethought. Take the example query above: ``sum:sys.cpu.user{host=webserver01}``. We recorded 64 unique time series for ``webserver01``, one time series for each of the CPU cores. When we issued that query, all of the time series for metric ``sys.cpu.user`` with the tag ``host=webserver01`` were retrieved, averaged, and returned as one series of numbers. Let's say the resulting average was ``50`` for timestamp ``1356998400``. Now we were migrating from another system to OpenTSDB and had a process that pre-aggregated all 64 cores so that we could quickly get the average value and simply wrote a new time series ``sys.cpu.user host=webserver01``. If we run the same query, we'll get a value of ``100`` at ``1356998400``. What happened? OpenTSDB aggregated all 64 time series *and* the pre-aggregated time series to get to that 100. In storage, we would have something like this:
+从长远看，如果你不明白OpenTSDB 如何查询，灵活的tag系统也可能会出现一些问题。还是以 ``sum:sys.cpu.user{host=webserver01}`` 查询为例，一个时间序列对应一个 cpu 内核，我们为 ``webserver01`` 记录了64 个唯一的时间序列。当我们发出一个查询，所有metric ``sys.cpu.user`` 还有 tag ``host=webserver01`` 都会被检索，平均，并返回一个时间序列数值,比方说，由此产生的时间戳为 ``1356998400`` 的值为 ``50``. 现在，我们从另一个系统预先集合号64个核的平均值只写一个时间序列 ``sys.cpu.user host=webserver01`` 存到OpenTSDB以便我们迅速得到平均值，如果我们执行相同的查询，我们会得到一个在 ``1356998400`` 的值是 ``100``。这是发生了什么呢？OpenTSDB 汇总了所有64个时间序列相加后预聚合时间序列为100。在存储方面，我们是这样做的：
 ::
 
   sys.cpu.user host=webserver01        1356998400  50
@@ -30,14 +30,15 @@ While the tagging system is flexible, some problems can arise if you don't under
   ...
   sys.cpu.user host=webserver01,cpu=63 1356998400  1
   
-OpenTSDB will *automatically* aggregate *all* of the time series for the metric in a query if no tags are given. If one or more tags are defined, the aggregate will 'include all' time series that match on that tag, regardless of other tags. With the query ``sum:sys.cpu.user{host=webserver01}``, we would include ``sys.cpu.user host=webserver01,cpu=0`` as well as ``sys.cpu.user host=webserver01,cpu=0,manufacturer=Intel``, ``sys.cpu.user host=webserver01,foo=bar`` and ``sys.cpu.user host=webserver01,cpu=0,datacenter=lax,department=ops``. The moral of this example is: *be careful with your naming schema*.
 
-Time Series Cardinality
+如果查询一个metric的时间序列没有提供tag OpenTSDB将自动聚合所有时间序列。如果指定了一个或多个tag，聚合不管其他tag 只将匹配相应的tag所对应的所有时间序列.做 ``sum:sys.cpu.user{host=webserver01}`` 查询，我们将包括 ``sys.cpu.user host=webserver01,cpu=0`` 还有 ``sys.cpu.user host=webserver01,cpu=0,manufacturer=Intel``, ``sys.cpu.user host=webserver01,foo=bar`` 和 ``sys.cpu.user host=webserver01,cpu=0,datacenter=lax,department=ops``。这个例子告诉我们：*小心你的命名模式*.
+
+时间序列基数
 -----------------------
 
 A critical aspect of any naming schema is to consider the cardinality of your time series. Cardinality is defined as the number of unique items in a set. In OpenTSDB's case, this means the number of items associated with a metric, i.e. all of the possible tag name and value combinations, as well as the number of unique metric names, tag names and tag values. Cardinality is important for two reasons outlined below.
 
-**Limited Unique IDs (UIDs)** 
+**唯一 ID (UIDs)的限制** 
 
 There is a limited number of unique IDs to assign for each metric, tag name and tag value. By default there are just over 16 million possible IDs per type. If, for example, you ran a very popular web service and tried to track the IP address of clients as a tag, e.g. ``web.app.hits clientip=38.26.34.10``, you may quickly run into the UID assignment limit as there are over 4 billion possible IP version 4 addresses. Additionally, this approach would lead to creating a very sparse time series as the user at address ``38.26.34.10`` may only use your app sporadically, or perhaps never again from that specific address.
 
@@ -49,7 +50,7 @@ If you desperately need more than 16 million values, you can increase the number
 
 .. Warning:: It is possible that your situation requires this value to be increased.  If you choose to modify this value, you must start with fresh data and a new UID table. Any data written with a TSD expecting 3-byte UID encoding will be incompatible with this change, so ensure that all of your TSDs are running the same modified code and that any data you have stored in OpenTSDB prior to making this change has been exported to a location where it can be manipulated by external tools.  See the ``TSDB.java`` file for the values to change.
 
-**Query Speed**
+**查询速度**
 
 Cardinality also affects query speed a great deal, so consider the queries you will be performing frequently and optimize your naming schema for those. OpenTSDB creates a new row per time series per hour. If we have the time series ``sys.cpu.user host=webserver01,cpu=0`` with data written every second for 1 day, that would result in 24 rows of data. However if we have 8 possible CPU cores for that host, now we have 192 rows of data. This looks good because we can get easily a sum or average of CPU usage across all cores by issuing a query like ``start=1d-ago&m=avg:sys.cpu.user{host=webserver01}``.
 
@@ -63,10 +64,10 @@ Here are some common means of dealing with cardinality:
 
 **Shift to Metric** - What if you really only care about the metrics for a particular host and don't need to aggregate across hosts? In that case you can shift the hostname to the metric. Our previous example becomes ``sys.cpu.user.websvr01 cpu=0``. Queries against this schema are very fast as there would only be 192 rows per day for the metric. However to aggregate across hosts you would have to execute mutliple queries and aggregate outside of OpenTSDB. (Future work will include this capability).
 
-Naming Conclusion
+命名经验总结
 -----------------
 
-When you design your naming schema, keep these suggestions in mind:
+在设计命名模式时，把这些铭记在心：
 
 * Be consistent with your naming to reduce duplication. Always use the same case for metrics, tag names and values.
 * Use the same number and type of tags for each metric. E.g. don't store ``my.metric host=foo`` and ``my.metric datacenter=lga``.
@@ -74,7 +75,7 @@ When you design your naming schema, keep these suggestions in mind:
 * Think about how you may want to drill down when querying
 * Don't use too many tags, keep it to a fairly small number, usually up to 4 or 5 tags (By default, OpenTSDB supports a maximum of 8 tags).
 
-Data Specification
+数据规范
 ^^^^^^^^^^^^^^^^^^
 
 Every time series data point requires the following data:
@@ -84,7 +85,7 @@ Every time series data point requires the following data:
 * value - A numeric value to store at the given timestamp for the time series. This may be an integer or a floating point value.
 * tag(s) - A key/value pair consisting of a ``tagk`` (the key) and a ``tagv`` (the value). Each data point must have at least one tag.
 
-Timestamps
+时间戳
 ----------
 
 Data can be written to OpenTSDB with second or millisecond resolution. Timestamps must be integers and be no longer than 13 digits (See first [NOTE] below).  Millisecond timestamps must be of the format ``1364410924250`` where the final three digits represent the milliseconds.  Applications that generate timestamps with more than 13 digits (i.e., greater than millisecond resolution) must be rounded to a maximum of 13 digits before submitting or an error will be generated.
@@ -95,7 +96,7 @@ Timestamps with second resolution are stored on 2 bytes while millisecond resolu
 
 .. NOTE:: Providing millisecond resolution does not necessarily mean that OpenTSDB supports write speeds of 1 data point per millisecond over many time series. While a single TSD may be able to handle a few thousand writes per second, that would only cover a few time series if you're trying to store a point every millisecond. Instead OpenTSDB aims to provide greater measurement accuracy and you should generally avoid recording data at such a speed, particularly for long running time series.
 
-Metrics and Tags
+Metrics 与 Tags
 ----------------
 
 The following rules apply to metric and tag values:
@@ -106,24 +107,24 @@ The following rules apply to metric and tag values:
 
 Metric and tags are not limited in length, though you should try to keep the values fairly short.
 
-Integer Values
+整数值
 --------------
 
 If the value from a ``put`` command is parsed without a decimal point (``.``), it will be treated as a signed integer. Integers are stored, unsigned, with variable length encoding so that a data point may take as little as 1 byte of space or up to 8 bytes. This means a data point can have a minimum value of -9,223,372,036,854,775,808 and a maximum value of 9,223,372,036,854,775,807 (inclusive). Integers cannot have commas or any character other than digits and the dash (for negative values).  For example, in order to store the maximum value, it must be provided in the form ``9223372036854775807``.
 
-Floating Point Values
+浮点值
 ---------------------
 
 If the value from a ``put`` command is parsed with a decimal point (``.``) it will be treated as a floating point value. Currently all floating point values are stored on 4 bytes, single-precision, with support for 8 bytes planned for a future release.  Floats are stored in IEEE 754 floating-point "single format" with positive and negative value support.  Infinity and Not-a-Number values are not supported and will throw an error if supplied to a TSD. See `Wikipedia <https://en.wikipedia.org/wiki/IEEE_floating_point>`_ and the `Java Documentation <http://docs.oracle.com/javase/specs/jls/se7/html/jls-4.html#jls-4.2.3>`_ for details.
 
-Ordering
+排序
 --------
 
 Unlike other solutions, OpenTSDB allows for writing data for a given time series in any order you want.  This enables significant flexibility in writing data to a TSD, allowing for populating current data from your systems, then importing historical data at a later time. 
 
 .. WARNING:: The only caveat when writing is that you cannot overwrite an existing value with a different value. Writing is idempotent, meaning you can write the value ``42`` at timestamp ``1356998400`` and then write ``42`` again for the same time, nothing bad will happen. However if you try to write ``42.5`` to the same timestamp, the row of data will become invalid (due to vagaries of the underlying schema) and any queries that include that row will throw an exception. Use the ``fsck`` utility to fix the row if this happens.
 
-Input Methods
+输入方法
 ^^^^^^^^^^^^^
 
 There are currently three main methods to get data into OpenTSDB: Telnet API, HTTP API and batch import from a file. Alternatively you can use a tool that provides OpenTSDB support, or if you're extremely adventurous, use the Java library. 
@@ -152,7 +153,7 @@ Http API
 
 As of version 2.0, data can be sent over HTTP in formats supported by 'Serializer' plugins. Multiple, un-related data points can be sent in a single HTTP POST request to save bandwidth. See the :doc:`../api_http/put` for details.
 
-Batch Import
+批量导入
 ------------
 
 If you are importing data from another system or you need to backfill historical data, you can use the ``import`` CLI utility. See :doc:`cli/import` for details.
@@ -162,7 +163,7 @@ Write Performance
 
 OpenTSDB can scale to writing millions of data points per 'second' on commodity servers with regular spinning hard drives. However users who fire up a VM with HBase in stand-alone mode and try to slam millions of data points at a brand new TSD are disappointed when they can only write data in the hundreds of points per second. Here's what you need to do to scale for brand new installs or testing and for expanding existing systems.
 
-UID Assignment
+UID 分配
 --------------
 
 The first sticking point folks run into is ''uid assignment''. Every string for a metric, tag key and tag value must be assigned a UID before the data point can be stored. For example, the metric ``sys.cpu.user`` may be assigned a UID of ``000001`` the first time it is encountered by a TSD. This assignment takes a fair amount of time as it must fetch an available UID, write a UID to name mapping and a name to UID mapping, then use the UID to write the data point's row key. The UID will be stored in the TSD's cache so that the next time the same metric comes through, it can find the UID very quickly.
@@ -171,7 +172,7 @@ Therefore, we recommend that you 'pre-assign' UID to as many metrics, tag keys a
 
 .. NOTE:: If you restart a TSD, it will have to lookup the UID for every metric and tag so performance will be a little slow until the cache is filled.
 
-Pre-Split HBase Regions
+预先分隔 HBase Regions
 -----------------------
 
 For brand new installs you will see much better performance if you pre-split the regions in HBase regardless of if you're testing on a stand-alone server or running a full cluster. HBase regions handle a defined range of row keys and are essentially a single file. When you create the ``tsdb`` table and start writing data for the first time, all of those data points are being sent to this one file on one server. As a region fills up, HBase will automatically split it into different files and move it to other servers in the cluster, but when this happens, the TSDs cannot write to the region and must buffer the data points. Therefore, if you can pre-allocate a number of regions before you start writing, the TSDs can send data to multiple files or servers and you'll be taking advantage of the linear scalability immediately. 
@@ -184,7 +185,7 @@ The simple split method above assumes that you have roughly an equal number of t
 
 But don't worry too much about splitting. As stated above, HBase will automatically split regions for you so over time, the data will be distributed fairly evenly.
 
-Distributed HBase
+分布式 HBase
 -----------------
 
 HBase will run in stand-alone mode where it will use the local file system for storing files. It will still use multiple regions and perform as well as the underlying disk or raid array will let it. You'll definitely want a RAID array under HBase so that if a drive fails, you can replace it without losing data. This kind of setup is fine for testing or very small installations and you should be able to get into the low thousands of data points per second.
@@ -200,17 +201,17 @@ There are a number of ways to setup a Hadoop/HBase cluster and a ton of various 
 * At least 1 gbps links between servers, 10 gbps preferable.
 * Keep the cluster in a single data center
 
-Multiple TSDs
+多个 TSD
 -------------
 
 A single TSD can handle thousands of writes per second. But if you have many sources it's best to scale by running multiple TSDs and using a load balancer (such as Varnish or DNS round robin) to distribute the writes. Many users colocate TSDs on their HBase region servers when the cluster is dedicated to OpenTSDB. 
 
-Persistent Connections
+长连接
 ----------------------
 
 Enable keep alives in the TSDs and make sure that any applications you are using to send time series data keep their connections open instead of opening and closing for every write. See :doc:`configuration` for details.
 
-Disable Meta Data and Real Time Publishing
+禁用元数据和实时发布
 ------------------------------------------
 
 OpenTSDB 2.0 introduced meta data for tracking the kinds of data in the system. When tracking is enabled, a counter is incremented for every data point written and new UIDs or time series will generate meta data. The data may be pushed to a search engine or passed through tree generation code. These processes require greater memory in the TSD and may affect throughput. Tracking is disabled by default so test it out before enabling the feature.
