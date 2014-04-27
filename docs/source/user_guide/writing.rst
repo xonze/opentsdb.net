@@ -36,19 +36,19 @@ OpenTSDB 通过引入标签 'tags' 思想来处理不同的事情。每一个时
 时间序列基数
 -----------------------
 
-A critical aspect of any naming schema is to consider the cardinality of your time series. Cardinality is defined as the number of unique items in a set. In OpenTSDB's case, this means the number of items associated with a metric, i.e. all of the possible tag name and value combinations, as well as the number of unique metric names, tag names and tag values. Cardinality is important for two reasons outlined below.
+每一个命名模式的一个关键方面就是要考虑你的时间序列基数。基数的意思就是项目中唯一的一组数。在 OpenTSDB 中，它的意思就是一个metric 所关联的多个项目，即所有可能的tag名称和tag值的组合，也就是一组唯一的metric名称、tag名称和tag值。基数的重要性有以下两个原因。
 
 **唯一 ID (UIDs)的限制** 
 
-There is a limited number of unique IDs to assign for each metric, tag name and tag value. By default there are just over 16 million possible IDs per type. If, for example, you ran a very popular web service and tried to track the IP address of clients as a tag, e.g. ``web.app.hits clientip=38.26.34.10``, you may quickly run into the UID assignment limit as there are over 4 billion possible IP version 4 addresses. Additionally, this approach would lead to creating a very sparse time series as the user at address ``38.26.34.10`` may only use your app sporadically, or perhaps never again from that specific address.
+为每一个 metric、tag 名称和 tag 值所分配的 UID 数量是有限的，默认情况下每个类型的 UID 可以有 1600万多个。假如，如果你运行这个一个非常受欢迎的 web service，并且试图将跟踪客户IP做为 tag，比如：``web.app.hits clientip=38.26.34.10``，你可能很快碰到可能有超过40亿的IPv4地址的 UID 分配限制。另外，这种方法会导致为客户地址 ``38.26.34.10`` 创建一个稀疏的时间序列，仅偶尔会被你的应用所用到，或者永远都不会被用到这个特定的地址。
 
-The UID limit is usually not an issue, however. A tag value is assigned a UID that is completely disassociated from its tag name. If you use numeric identifiers for tag values, the number is assigned a UID once and can be used with many tag names. For example, if we assign a UID to the number ``2``, we could store timeseries with the tag pairs ``cpu=2``, ``interface=2``, ``hdd=2`` and ``fan=2`` while consuming only 1 tag value UID (``1``) and 4 tag name UIDs (``cpu``, ``interface``, ``hdd`` and ``fan``).
+但是，UID限制通常并不是一个问题。一个 tag值分配一个 UID，这完全与它的 Tag 名称没有关联。假如你使用数字标示符做 tag 值，这个数字被分配一次 UID 可以用于许多 Tag名称。举个例子，我们给数字 ``2`` 分配了一个UID，我们可以使用 tag对 ``cpu=2``、``interface=2``、 ``hdd=2`` 和 ``fan=2`` 存储时间序列，仅消耗一个 tag 值 (``2``)  UID 和 4 个tag名称（``cpu``, ``interface``, ``hdd`` and ``fan``）的 UID。
 
-If you think that the UID limit may impact you, first think about the queries that you want to execute. If we look at the ``web.app.hits`` example above, you probably only care about the total number of hits to your service and rarely need to drill down to a specific IP address. In that case, you may want to store the IP address as an annotation. That way you could still benefit from low cardinality but if you need to, you could search the results for that particular IP using external scripts. (Note: Support for annotation queries is expected in a *future* version of OpenTSDB.)
+如果你认为 UID 的限制会影响到你，首先要想想你要执行的查询。如果我们来看上面关于 ``web.app.hits`` 的例子，你可能仅仅关心到达你的服务所命中的总数量，并不关心某个特定的IP地址。这种情况下，你可能想将IP地址作为注释存储，如果你需要，这样你任然可以受益于低基数，你可以为特定IP搜索结果使用扩展脚本。（注：OpenTSDB 2.0 开始支持注释查询。）
 
-If you desperately need more than 16 million values, you can increase the number of bytes that OpenTSDB uses to encode UIDs from 3 bytes up to a maximum of 8 bytes. This change would require modifying the value in source code, recompiling, deploying your customized code to all TSDs which will access this data, and maintaining this customization across all future patches and releases.
+如果你迫切需要超过1600万的值，你可以增加 OpenTSDB UID 编码的字节数，从3个字节到最大8个字节。这个改变需要在源码中修改相应的值、重新编译、部署所有需要访问这个数据的TDS，并且需要为未来所有版本保持这个定制的补丁。
 
-.. Warning:: It is possible that your situation requires this value to be increased.  If you choose to modify this value, you must start with fresh data and a new UID table. Any data written with a TSD expecting 3-byte UID encoding will be incompatible with this change, so ensure that all of your TSDs are running the same modified code and that any data you have stored in OpenTSDB prior to making this change has been exported to a location where it can be manipulated by external tools.  See the ``TSDB.java`` file for the values to change.
+.. Warning:: 有可能你的情况需要增加这个值。如果你选择来修改这个值,你必须开始用新的数据和一个新的UID表。任何数据写一个预计用3字节UID编码的TSD都将不兼容这一修改，所有确保所有的TSD运行相同修改的代码，并且在修改之前已经存储到OpenTSDB任何数据已经使用外部导出工具导出到一个地方。这个值的修改是在 ``TSDB.java`` 文件中。
 
 **查询速度**
 
