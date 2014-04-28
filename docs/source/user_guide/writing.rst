@@ -52,38 +52,40 @@ OpenTSDB 通过引入标签 'tags' 思想来处理不同的事情。每一个时
 
 **查询速度**
 
-Cardinality also affects query speed a great deal, so consider the queries you will be performing frequently and optimize your naming schema for those. OpenTSDB creates a new row per time series per hour. If we have the time series ``sys.cpu.user host=webserver01,cpu=0`` with data written every second for 1 day, that would result in 24 rows of data. However if we have 8 possible CPU cores for that host, now we have 192 rows of data. This looks good because we can get easily a sum or average of CPU usage across all cores by issuing a query like ``start=1d-ago&m=avg:sys.cpu.user{host=webserver01}``.
+基数也会对查询速度有很大的影响,所以要考虑你会经常执行的查询以优化你的命名模式。OpenTSDB 为每一个小时创建新的一行时间序列。假如我们有时间序列 ``sys.cpu.user host=webserver01,cpu=0``，每秒都写入写一天，那么就会有24行的数据。然而如果我们再这个主机上有8核的CPU，我们一天就会有192行数据。这看起来不错，因为我们可以通过类似这样的查询 ``start=1d-ago&m=avg:sys.cpu.user{host=webserver01}`` 轻松获得合计或者平均数。
 
-However what if we have 20,000 hosts, each with 8 cores? Now we will have 3.8 million rows per day due to a high cardinality of host values. Queries for the average core usage on host ``webserver01`` will be slower as it must pick out 192 rows out of 3.8 million. 
+然而，假如我们有20,000台8核主机，现在我们每天将会有380万行这样一个较高基数的主机值。要查询 ``webserver01`` 主机的平均核心的使用情况会很慢，因为它会从380万行中挑出192行进行计算。
 
-The benefits of this schema are that you have very deep granularity in your data, e.g., storing usage metrics on a per-core basis. You can also easily craft a query to get the average usage across all cores an all hosts: ``start=1d-ago&m=avg:sys.cpu.user``. However queries against that particular metric will take longer as there are more rows to sift through.  
+这种模式的好处是，假如需要存储每个核心的使用指标，你可以有很深的数据颗粒度，你还可以轻松的获取所有主机的所有核心的平均值：``start=1d-ago&m=avg:sys.cpu.user``。然而特定的指标将需要更长的查询时间，因为需要从更多的行中过滤。
 
-Here are some common means of dealing with cardinality:
 
-**Pre-Aggregate** - In the example above with ``sys.cpu.user``, you generally care about the average usage on the host, not the usage per core. While the data collector may send a separate value per core with the tagging schema above, the collector could also send one extra data point such as ``sys.cpu.user.avg host=webserver01``. Now you have a completely separate timeseries that would only have 24 rows per day and with 20K hosts, only 480K rows to sift through. Queries will be much more responsive for the per-host average and you still have per-core data to drill down to separately.
+下面是处理基数的常见方法：
 
-**Shift to Metric** - What if you really only care about the metrics for a particular host and don't need to aggregate across hosts? In that case you can shift the hostname to the metric. Our previous example becomes ``sys.cpu.user.websvr01 cpu=0``. Queries against this schema are very fast as there would only be 192 rows per day for the metric. However to aggregate across hosts you would have to execute mutliple queries and aggregate outside of OpenTSDB. (Future work will include this capability).
+**聚合前** - 在 ``sys.cpu.user`` 这个例子中, 你通常关心的主机平均使用情况,而不是每核心使用的使用情况。
+虽然在上面的Tag模式中数据收集器可能会分散发送每个核的值，收集器也可以发送一个类似 ``sys.cpu.user.avg host=webserver01``额外的数据点。现在20k台主机每个每天有24行独立的时间序列，这样只有480k 行要筛选，查询每个主机的平均值更快，并且与单个核的数据完全独立开了。
+
+**转变 metric** - 如果你真的只关心特定主机的metric而不是总的主机情况，这种情况下，你可以把hostname作为metric。再回到上面的例子 ``sys.cpu.user.websvr01 cpu=0`` ，这种模式查询非常快，每天只有192行metric。然而主机汇总则不得不在 OpenTSDB 之外做更多的查询和聚合。（未来将包含此功能）
 
 命名经验总结
 -----------------
 
 在设计命名模式时，把这些铭记在心：
 
-* Be consistent with your naming to reduce duplication. Always use the same case for metrics, tag names and values.
-* Use the same number and type of tags for each metric. E.g. don't store ``my.metric host=foo`` and ``my.metric datacenter=lga``.
-* Think about the most common queries you'll be executing and optimize your schema for those queries
-* Think about how you may want to drill down when querying
-* Don't use too many tags, keep it to a fairly small number, usually up to 4 or 5 tags (By default, OpenTSDB supports a maximum of 8 tags).
+* 保持一致的命名，减少重复。总是使用相同的 metrics、 tag name 和 values 的名称。
+* 每个metric使用相同数量和类型的tag，如不要用 ``my.metric host=foo`` 和 ``my.metric datacenter=lga``。
+* 考虑你最常用的查询，以及根据你的查询优化模式
+* 考虑查询时如何更深入
+* 不要使用太多的Tag，保持在一个相对小的数量。通常4~5个tag（默认OpenTSDB最多支持8个Tag）。
 
 数据规范
 ^^^^^^^^^^^^^^^^^^
 
-Every time series data point requires the following data:
+每一个时间序列数据都需要以下几点组成：
 
-* metric - A generic name for the time series such as ``sys.cpu.user``, ``stock.quote`` or ``env.probe.temp``.
-* timestamp - A Unix/POSIX Epoch timestamp in seconds or milliseconds defined as the number of seconds that have elapsed since January 1st, 1970 at 00:00:00 UTC time. Only positive timestamps are supported at this time.
-* value - A numeric value to store at the given timestamp for the time series. This may be an integer or a floating point value.
-* tag(s) - A key/value pair consisting of a ``tagk`` (the key) and a ``tagv`` (the value). Each data point must have at least one tag.
+* metric - 一个通用的时间序列名称，比如 ``sys.cpu.user``, ``stock.quote`` 或 ``env.probe.temp``.
+* 时间戳 - Unix 时间戳秒和毫秒，仅支持正数的时间戳。
+* 值 - 时间序列给定时间点存储的数值，支持整数和浮点数。
+* Tag - 由 key/value  ``tagk``  和 ``tagv`` 键值对组成。每个数据点必须至少要有一个Tag
 
 时间戳
 ----------
