@@ -90,24 +90,25 @@ OpenTSDB 通过引入标签 'tags' 思想来处理不同的事情。每一个时
 时间戳
 ----------
 
-Data can be written to OpenTSDB with second or millisecond resolution. Timestamps must be integers and be no longer than 13 digits (See first [NOTE] below).  Millisecond timestamps must be of the format ``1364410924250`` where the final three digits represent the milliseconds.  Applications that generate timestamps with more than 13 digits (i.e., greater than millisecond resolution) must be rounded to a maximum of 13 digits before submitting or an error will be generated.
+数据可以以秒或毫秒的精度写入 OpenTSDB。时间戳必须是不能大于13个数。毫秒时间戳必须以 ``1364410924250`` 这样的格式，最终以末尾以三个数字来标示毫秒。应用程序如果生成的时间戳多于13个数字（即：高于毫秒精度）必须最多截取前13个数字，否则会产生错误。
 
-Timestamps with second resolution are stored on 2 bytes while millisecond resolution are stored on 4. Thus if you do not need millisecond resolution or all of your data points are on 1 second boundaries, we recommend that you submit timestamps with 10 digits for second resolution so that you can save on storage space. It's also a good idea to avoid mixing second and millisecond timestamps for a given time series. Doing so will slow down queries as iteration across mixed timestamps takes longer than if you only record one type or the other. OpenTSDB will store whatever you give it.
+时间戳以秒的精度存储占用2个字节，如果以毫秒的精度存储占4个字节。因此如果你不需要毫秒精度或你所有的数据点的边界是1秒，我们推荐你在提交秒精度的10个数字的时间戳，这样你可以节省存储空间。这对于一个给定的时间序列来说避免混合使用秒和毫秒精度是有好处的。混合时间戳查询迭代时间要比只记录一种类型要快得多。
 
-.. NOTE:: When writing to the telnet interface, timestamps may optionally be written in the form ``1364410924.250``, where three digits representing the milliseconds are placed after a period.  Timestamps sent to the ``/api/put`` endpoint over HTTP *must* be integers and may not have periods. Data with millisecond resolution can only be extracted via the ``/api/query`` endpoint or CLI command at this time. See :doc:`query/index` for details.
 
-.. NOTE:: Providing millisecond resolution does not necessarily mean that OpenTSDB supports write speeds of 1 data point per millisecond over many time series. While a single TSD may be able to handle a few thousand writes per second, that would only cover a few time series if you're trying to store a point every millisecond. Instead OpenTSDB aims to provide greater measurement accuracy and you should generally avoid recording data at such a speed, particularly for long running time series.
+.. NOTE:: 当以telnet接口写入时，时间戳可以被写成 ``1364410924.250`` 点后三个数字代表毫秒。 通过 ``/api/put`` HTTP接口写入的时间戳必须是整数，不能带点符号。仅在通过  ``/api/query`` 接口和命令行时可以使用毫秒精度的时间戳。具体细节参考 :doc:`query/index` 。
 
-Metrics 与 Tags
+.. NOTE:: 提供毫秒精度并不意味着 OpenTSDB 支持可以每毫秒一个数据点为很多时间序列快速写入。虽然一个TSD可以支持每秒上千的写入，这样假如你尝试每毫秒存储一个点这只会覆盖一些时间序列。相反，OpenTSDB 旨在提供更高的精度，同时还是要避免以这样的速度记录数据，特别是长时间运行的时间序列。
+
+Metric 与 Tags
 ----------------
 
-The following rules apply to metric and tag values:
+以下规则适用于 metric 和 tag 值:
 
-* Strings are case sensitive, i.e. "Sys.Cpu.User" will be stored separately from "sys.cpu.user"
-* Spaces are not allowed
-* Only the following characters are allowed: ``a`` to ``z``, ``A`` to ``Z``, ``0`` to ``9``, ``-``, ``_``, ``.``, ``/`` or Unicode letters (as per the specification)
+* 字符串大小写敏感，比如"Sys.Cpu.User" 和 "sys.cpu.user" 会分别被存储
+* 不允许有空格
+* 只允许以下字符: ``a`` 到 ``z``, ``A`` 到 ``Z``, ``0`` 到 ``9``, ``-``, ``_``, ``.``, ``/`` 或 Unicode 字符 (按照规范)
 
-Metric and tags are not limited in length, though you should try to keep the values fairly short.
+虽然 Metric和Tag不限制长度，但还是应该保持短一些。
 
 整数值
 --------------
