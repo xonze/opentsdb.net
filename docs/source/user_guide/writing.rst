@@ -90,89 +90,91 @@ OpenTSDB 通过引入标签 'tags' 思想来处理不同的事情。每一个时
 时间戳
 ----------
 
-Data can be written to OpenTSDB with second or millisecond resolution. Timestamps must be integers and be no longer than 13 digits (See first [NOTE] below).  Millisecond timestamps must be of the format ``1364410924250`` where the final three digits represent the milliseconds.  Applications that generate timestamps with more than 13 digits (i.e., greater than millisecond resolution) must be rounded to a maximum of 13 digits before submitting or an error will be generated.
+数据可以以秒或毫秒的精度写入 OpenTSDB。时间戳必须是不能大于13个数。毫秒时间戳必须以 ``1364410924250`` 这样的格式，最终以末尾以三个数字来标示毫秒。应用程序如果生成的时间戳多于13个数字（即：高于毫秒精度）必须最多截取前13个数字，否则会产生错误。
 
-Timestamps with second resolution are stored on 2 bytes while millisecond resolution are stored on 4. Thus if you do not need millisecond resolution or all of your data points are on 1 second boundaries, we recommend that you submit timestamps with 10 digits for second resolution so that you can save on storage space. It's also a good idea to avoid mixing second and millisecond timestamps for a given time series. Doing so will slow down queries as iteration across mixed timestamps takes longer than if you only record one type or the other. OpenTSDB will store whatever you give it.
+时间戳以秒的精度存储占用2个字节，如果以毫秒的精度存储占4个字节。因此如果你不需要毫秒精度或你所有的数据点的边界是1秒，我们推荐你在提交秒精度的10个数字的时间戳，这样你可以节省存储空间。这对于一个给定的时间序列来说避免混合使用秒和毫秒精度是有好处的。混合时间戳查询迭代时间要比只记录一种类型要快得多。
 
-.. NOTE:: When writing to the telnet interface, timestamps may optionally be written in the form ``1364410924.250``, where three digits representing the milliseconds are placed after a period.  Timestamps sent to the ``/api/put`` endpoint over HTTP *must* be integers and may not have periods. Data with millisecond resolution can only be extracted via the ``/api/query`` endpoint or CLI command at this time. See :doc:`query/index` for details.
 
-.. NOTE:: Providing millisecond resolution does not necessarily mean that OpenTSDB supports write speeds of 1 data point per millisecond over many time series. While a single TSD may be able to handle a few thousand writes per second, that would only cover a few time series if you're trying to store a point every millisecond. Instead OpenTSDB aims to provide greater measurement accuracy and you should generally avoid recording data at such a speed, particularly for long running time series.
+.. NOTE:: 当以telnet接口写入时，时间戳可以被写成 ``1364410924.250`` 点后三个数字代表毫秒。 通过 ``/api/put`` HTTP接口写入的时间戳必须是整数，不能带点符号。仅在通过  ``/api/query`` 接口和命令行时可以使用毫秒精度的时间戳。具体细节参考 :doc:`query/index` 。
 
-Metrics 与 Tags
+.. NOTE:: 提供毫秒精度并不意味着 OpenTSDB 支持可以每毫秒一个数据点为很多时间序列快速写入。虽然一个TSD可以支持每秒上千的写入，这样假如你尝试每毫秒存储一个点这只会覆盖一些时间序列。相反，OpenTSDB 旨在提供更高的精度，同时还是要避免以这样的速度记录数据，特别是长时间运行的时间序列。
+
+Metric 与 Tags
 ----------------
 
-The following rules apply to metric and tag values:
+以下规则适用于 metric 和 tag 值:
 
-* Strings are case sensitive, i.e. "Sys.Cpu.User" will be stored separately from "sys.cpu.user"
-* Spaces are not allowed
-* Only the following characters are allowed: ``a`` to ``z``, ``A`` to ``Z``, ``0`` to ``9``, ``-``, ``_``, ``.``, ``/`` or Unicode letters (as per the specification)
+* 字符串大小写敏感，比如"Sys.Cpu.User" 和 "sys.cpu.user" 会分别被存储
+* 不允许有空格
+* 只允许以下字符: ``a`` 到 ``z``, ``A`` 到 ``Z``, ``0`` 到 ``9``, ``-``, ``_``, ``.``, ``/`` 或 Unicode 字符 (按照规范)
 
-Metric and tags are not limited in length, though you should try to keep the values fairly short.
+虽然 Metric和Tag不限制长度，但还是应该保持短一些。
 
 整数值
 --------------
 
-If the value from a ``put`` command is parsed without a decimal point (``.``), it will be treated as a signed integer. Integers are stored, unsigned, with variable length encoding so that a data point may take as little as 1 byte of space or up to 8 bytes. This means a data point can have a minimum value of -9,223,372,036,854,775,808 and a maximum value of 9,223,372,036,854,775,807 (inclusive). Integers cannot have commas or any character other than digits and the dash (for negative values).  For example, in order to store the maximum value, it must be provided in the form ``9223372036854775807``.
+假如用 ``put`` 命令解析没有带小数点 (``.``)的值，它会被认为是有符号整型。整数存储，无符号，使用可白长度编码，一个数据点需要少则1字节，多则8字节存储空间。这个意思是一个暑假点可以有一个最小值 -9,223,372,036,854,775,808 和最大值  9,223,372,036,854,775,807（包含）。整数不能有逗号或其它不是数字和负号（负值）的字符。举个例子，为了存储最大值它必须在 ``9223372036854775807`` 之内提供。
 
 浮点值
 ---------------------
 
-If the value from a ``put`` command is parsed with a decimal point (``.``) it will be treated as a floating point value. Currently all floating point values are stored on 4 bytes, single-precision, with support for 8 bytes planned for a future release.  Floats are stored in IEEE 754 floating-point "single format" with positive and negative value support.  Infinity and Not-a-Number values are not supported and will throw an error if supplied to a TSD. See `Wikipedia <https://en.wikipedia.org/wiki/IEEE_floating_point>`_ and the `Java Documentation <http://docs.oracle.com/javase/specs/jls/se7/html/jls-4.html#jls-4.2.3>`_ for details.
+如果从 ``put`` 命令解析出的值带有小数点 (``.``)，它将被认为是一个浮点类型的值。当前所有浮点值存储占用4个字节，单精度，未来的发行版计划支持8字节。浮点数字存储在 支持正负值的IEEE 754 浮点单一格式中。无穷和非数值是不支持的，如果提供给TSD会抛出一个错误。具体参考 `维基百科 <https://en.wikipedia.org/wiki/IEEE_floating_point>`_ 和 `Java 文档 <http://docs.oracle.com/javase/specs/jls/se7/html/jls-4.html#jls-4.2.3>`_ 
 
 排序
 --------
 
-Unlike other solutions, OpenTSDB allows for writing data for a given time series in any order you want.  This enables significant flexibility in writing data to a TSD, allowing for populating current data from your systems, then importing historical data at a later time. 
+与其它方案相比，OpenTSDB 允许写入任何你想要的时间序列数据。这使得写入数据到TSD中有非常好的灵活性，允许从你的系统填充当前的数据稍后再将历史数据导入。
 
-.. WARNING:: The only caveat when writing is that you cannot overwrite an existing value with a different value. Writing is idempotent, meaning you can write the value ``42`` at timestamp ``1356998400`` and then write ``42`` again for the same time, nothing bad will happen. However if you try to write ``42.5`` to the same timestamp, the row of data will become invalid (due to vagaries of the underlying schema) and any queries that include that row will throw an exception. Use the ``fsck`` utility to fix the row if this happens.
+.. WARNING:: 唯一要注意的是不能以一个不同的值来改写现有的值。写入是幂等的，这意味着你可以在时间戳 ``1356998400`` 把值 ``42`` 写入，然后再一次再在时间戳 ``1356998400`` 把值 ``42`` 写入，这什么都被不会发生。但是如果你想把 ``42.5`` 写入同一个时间戳这行数据将无效，并且任何包含这一行的查询都会抛出异常。如果有这种情况使用 ``fsck`` 工具可以修复这行。
 
 输入方法
 ^^^^^^^^^^^^^
 
-There are currently three main methods to get data into OpenTSDB: Telnet API, HTTP API and batch import from a file. Alternatively you can use a tool that provides OpenTSDB support, or if you're extremely adventurous, use the Java library. 
+目前OpenTSDB有三种方法获取数据： Telnet API、HTTP API 和从文件批量导入。作为二选一，你可以使用一个提供OpenTSDB支持的工具或者非常冒险的使用Java库。
 
-.. WARNING:: Don't try to write directly to the underlying storage system, e.g. HBase. Just don't. It'll get messy quickly.
+.. WARNING:: 不要试图直接写底层存储系统，比如HBase。真的，它很快会变地混乱。
 
 Telnet
 ------
 
-The easiest way to get started with OpenTSDB is to open up a terminal or telnet client, connect to your TSD and issue a ``put`` command and hit 'enter'. If you are writing a program, simply open a socket, print the string command with a new line and send the packet. The telnet command format is:
+开始OpenTSDB最简单的方法是打开一个终端或telnet客户端，连接到你的TSD并使用 ``put`` 命令并按回车键。如果你正在写一个程序，只需打开一个socket，用一个新行打印字符串命令并且发送数据包。telnet命令的格式：
 
 ::
 
   put <metric> <timestamp> <value> <tagk1=tagv1[ tagk2=tagv2 ...tagkN=tagvN]>
   
-For example:
+举一个例子:
 
 ::
 
   put sys.cpu.user 1356998400 42.5 host=webserver01 cpu=0
  
-Each ``put`` can only send a single data point. Don't forget the newline character, e.g. ``\n`` at the end of your command.
+每一个 ``put`` 只能发送一个数据点。在你的命令结尾不要忘了换行符，即： ``\n`` 。
 
 Http API
 --------
 
-As of version 2.0, data can be sent over HTTP in formats supported by 'Serializer' plugins. Multiple, un-related data points can be sent in a single HTTP POST request to save bandwidth. See the :doc:`../api_http/put` for details.
+从2.0开始，数据通过HTTP发送的数据格式支持 'Serializer' 插件。多个相关数据点可以发送一个HTTP POST请求以节约带宽，详情查看 :doc:`../api_http/put` .
 
 批量导入
 ------------
 
-If you are importing data from another system or you need to backfill historical data, you can use the ``import`` CLI utility. See :doc:`cli/import` for details.
+如果你从另一个系统导入数据或者回填历史数据，你可以使用 ``import`` 命令行工具。详情查看  :doc:`cli/import` 。
 
-Write Performance
+写入性能
 ^^^^^^^^^^^^^^^^^
 
-OpenTSDB can scale to writing millions of data points per 'second' on commodity servers with regular spinning hard drives. However users who fire up a VM with HBase in stand-alone mode and try to slam millions of data points at a brand new TSD are disappointed when they can only write data in the hundreds of points per second. Here's what you need to do to scale for brand new installs or testing and for expanding existing systems.
+OpenTSDB 可以扩展到在使用普通机械硬盘的商业服务器上每秒写入上百万数据点。然而用户启用一个虚拟机的单机模式的HBase，尝试数百万的数据点猛烈地写入一个TSD时只能每秒写入数百点数据而感到失望时，这时你就需要新安装或测试扩大现有系统规模。
+
 
 UID 分配
 --------------
 
-The first sticking point folks run into is ''uid assignment''. Every string for a metric, tag key and tag value must be assigned a UID before the data point can be stored. For example, the metric ``sys.cpu.user`` may be assigned a UID of ``000001`` the first time it is encountered by a TSD. This assignment takes a fair amount of time as it must fetch an available UID, write a UID to name mapping and a name to UID mapping, then use the UID to write the data point's row key. The UID will be stored in the TSD's cache so that the next time the same metric comes through, it can find the UID very quickly.
+大伙遇到的第一个关键点就是 ''uid 分配'' 。在数据点存储前，每一个metric字符串、tag key 和tag 值都必须分别一个UID。例如，metric ``sys.cpu.user`` 可以在首次被TSD遇到时分配一个UID  ``000001`` ，这个任务需要大量的时间，因为它必须取得一个可用的UID，写入一个UID到名称的映射和名称到UID的映射，然后使用UID写数据点的 rowkey。TSD将UID存储到TSD的缓存中，这样下次相同的metric 它很快就可以找到UID。
 
-Therefore, we recommend that you 'pre-assign' UID to as many metrics, tag keys and tag values as you can. If you have designed a naming schema as recommended above, you'll know most of the values to assign. You can use the CLI tools :doc:`cli/mkmetric`, :doc:`cli/uid` or the HTTP API :doc:`../api_http/uid/index` to perform pre-assignments. Any time you are about to send a bunch of new metrics or tags to a running OpenTSDB cluster, try to pre-assign or the TSDs will bog down a bit when they get the new data.
+因此，我们推荐你在有很多metric、tag keys和tag值时可用预分配UID。如果你已经如上文所建议设计了一个命名方案，你就会知道大部分值的分配。你可以使用命令行工具 :doc:`cli/mkmetric`、 :doc:`cli/uid` 或HTTP API :doc:`../api_http/uid/index` 执行预分配。任何时候你要发送一批新的metric或tag到运行OpenTSDB的集群，当得到新数据试图预分配或者TSD被拖垮。
 
-.. NOTE:: If you restart a TSD, it will have to lookup the UID for every metric and tag so performance will be a little slow until the cache is filled.
+.. NOTE:: 如果你重启一个TSD，它会查找每一个metric和tag的UID，这样会有点慢，直到缓存被填充。
 
 预先分隔 HBase Regions
 -----------------------
@@ -206,16 +208,16 @@ There are a number of ways to setup a Hadoop/HBase cluster and a ton of various 
 多个 TSD
 -------------
 
-A single TSD can handle thousands of writes per second. But if you have many sources it's best to scale by running multiple TSDs and using a load balancer (such as Varnish or DNS round robin) to distribute the writes. Many users colocate TSDs on their HBase region servers when the cluster is dedicated to OpenTSDB. 
+单一的TSD每秒可以处理数千写入，但是你要是有多个数据源最好运行多个TSD，使用复制均衡器（如 Varnish或DNS轮询调度）分发写入。很多用户将OpenTSDB 集群的TSD部署在HBase region 服务器上。
 
 长连接
 ----------------------
 
-Enable keep alives in the TSDs and make sure that any applications you are using to send time series data keep their connections open instead of opening and closing for every write. See :doc:`configuration` for details.
+在TSD中启用长连接，并确保任何应用程序使用长连接发送时间序列数据，而不是每次打开关闭连接。具体参考 :doc:`configuration` 。
 
 禁用元数据和实时发布
 ------------------------------------------
 
-OpenTSDB 2.0 introduced meta data for tracking the kinds of data in the system. When tracking is enabled, a counter is incremented for every data point written and new UIDs or time series will generate meta data. The data may be pushed to a search engine or passed through tree generation code. These processes require greater memory in the TSD and may affect throughput. Tracking is disabled by default so test it out before enabling the feature.
+OpenTSDB 2.0 引入元数据用来跟踪系统中的各种类型数据。当跟踪启用时，计数器递增为每一个数据点写入新的UID或时间序列生成元数据，该数据可以被推倒一个搜索引擎或者通过tree生成代码。这些方法需要TSD有跟多的内存，并且会影响吞吐量。默认情况下禁用跟踪，测试之前启用该功能。
 
-2.0 also introduced a real-time publishing plugin where incoming data points can be emitted to another destination immediately after they're queued for storage. This is diabled by default so test any plugins you are interested in before deploying in production.
+2.0还引用了实时发布插件，当数据点传入可以发送到另一目标立即排队存储。这是默认禁用的，任何插件在部署到生产环境之前要测试好。
